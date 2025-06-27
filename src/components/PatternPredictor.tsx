@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -6,6 +5,8 @@ import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { Candle, Pattern } from '../types/trading';
 import { Target, TrendingUp, TrendingDown, Brain, Zap } from 'lucide-react';
+import { predictionTracker } from '../utils/predictionTracker';
+import AutoLearningSystem from './AutoLearningSystem';
 
 interface PatternPredictorProps {
   candles: Candle[];
@@ -34,17 +35,27 @@ const PatternPredictor: React.FC<PatternPredictorProps> = ({
   const [predictions, setPredictions] = useState<Prediction[]>([]);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [aiInsights, setAiInsights] = useState<string>('');
+  const [autoLearningStats, setAutoLearningStats] = useState<any>(null);
 
   useEffect(() => {
     if (candles.length > 0) {
       generatePredictions();
+      // Evaluar predicciones anteriores automáticamente
+      evaluateExistingPredictions();
     }
   }, [candles, patterns, selectedAsset]);
+
+  const evaluateExistingPredictions = () => {
+    const results = predictionTracker.evaluatePredictions(candles);
+    if (results.length > 0) {
+      console.log(`Evaluadas ${results.length} predicciones automáticamente`);
+      updateAiInsightsWithResults(results);
+    }
+  };
 
   const generatePredictions = async () => {
     setIsAnalyzing(true);
     
-    // Simular análisis IA
     setTimeout(() => {
       const newPredictions: Prediction[] = [];
       
@@ -91,6 +102,18 @@ const PatternPredictor: React.FC<PatternPredictorProps> = ({
         confidence: 0.55,
         reasoning: volumeAnalysis.reasoning,
         timestamp: Date.now()
+      });
+      
+      // Registrar predicciones en el tracker para seguimiento automático
+      newPredictions.forEach(prediction => {
+        predictionTracker.addPrediction({
+          id: prediction.id,
+          patternName: prediction.patternName,
+          type: prediction.type,
+          probability: prediction.probability,
+          horizon: prediction.nextCandles,
+          candleIndex: candles.length - 1
+        });
       });
       
       setPredictions(newPredictions);
@@ -166,6 +189,26 @@ const PatternPredictor: React.FC<PatternPredictorProps> = ({
     }
   };
 
+  const updateAiInsightsWithResults = (results: any[]) => {
+    const stats = predictionTracker.getAccuracyStats();
+    
+    let insight = '';
+    if (stats.successRate > 0.7) {
+      insight = `🎯 El sistema está funcionando excelentemente con ${Math.round(stats.successRate * 100)}% de éxito. `;
+      insight += `Las predicciones están siendo muy precisas para ${selectedAsset}.`;
+    } else if (stats.successRate > 0.5) {
+      insight = `📊 El sistema está aprendiendo con ${Math.round(stats.successRate * 100)}% de éxito. `;
+      insight += `Ajustando algoritmos automáticamente para mejorar la precisión.`;
+    } else if (stats.totalPredictions > 5) {
+      insight = `⚠️ El sistema está reajustando estrategias. Precisión actual: ${Math.round(stats.successRate * 100)}%. `;
+      insight += `El aprendizaje automático está optimizando los algoritmos para ${selectedAsset}.`;
+    }
+    
+    if (insight) {
+      setAiInsights(insight);
+    }
+  };
+
   const generateAiInsights = (predictions: Prediction[]) => {
     const bullishPredictions = predictions.filter(p => p.type === 'bullish').length;
     const bearishPredictions = predictions.filter(p => p.type === 'bearish').length;
@@ -185,7 +228,20 @@ const PatternPredictor: React.FC<PatternPredictorProps> = ({
       insight += `Mercado incierto - espera confirmación antes de operar o usa estrategias conservadoras.`;
     }
     
-    setAiInsights(insight);
+    // Incorporar estadísticas de aprendizaje automático
+    const stats = predictionTracker.getAccuracyStats();
+    if (stats.totalPredictions > 0) {
+      const successInfo = ` (Precisión histórica: ${Math.round(stats.successRate * 100)}%)`;
+      setAiInsights(prev => prev + successInfo);
+    }
+  };
+
+  const handleLearningUpdate = (learningStats: any) => {
+    setAutoLearningStats(learningStats);
+    // Actualizar insights basado en el aprendizaje
+    if (learningStats.accuracyRate > 0) {
+      updateAiInsightsWithResults([]);
+    }
   };
 
   const getPredictionIcon = (type: string) => {
@@ -202,6 +258,14 @@ const PatternPredictor: React.FC<PatternPredictorProps> = ({
 
   return (
     <div className="space-y-4">
+      {/* Sistema de Autoaprendizaje */}
+      <AutoLearningSystem
+        candles={candles}
+        patterns={patterns}
+        predictions={predictions}
+        onLearningUpdate={handleLearningUpdate}
+      />
+      
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
@@ -223,9 +287,14 @@ const PatternPredictor: React.FC<PatternPredictorProps> = ({
             <div className="mb-6 p-4 bg-gradient-to-r from-purple-50 to-blue-50 rounded-lg border-l-4 border-l-purple-500">
               <h4 className="font-semibold text-purple-800 mb-2 flex items-center gap-2">
                 <Brain className="w-4 h-4" />
-                Análisis Inteligente
+                Análisis Inteligente (Autoaprendizaje Activo)
               </h4>
               <p className="text-purple-700">{aiInsights}</p>
+              {autoLearningStats && (
+                <div className="mt-2 text-sm text-purple-600">
+                  Sistema procesó {autoLearningStats.totalPredictions} predicciones con {Math.round(autoLearningStats.accuracyRate * 100)}% de precisión
+                </div>
+              )}
             </div>
           )}
 
