@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -6,10 +5,12 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Badge } from '@/components/ui/badge';
 import CandlestickChart from './CandlestickChart';
 import PatternDetector from './PatternDetector';
+import PatternPredictor from './PatternPredictor';
+import LearningEngine from './LearningEngine';
 import { Candle, Pattern } from '../types/trading';
 import { generateSampleCandles, olympTradeAssets } from '../utils/sampleData';
 import { detectPatterns } from '../utils/patternAnalysis';
-import { BarChart3, TrendingUp, TrendingDown, AlertCircle, Refresh } from 'lucide-react';
+import { BarChart3, TrendingUp, TrendingDown, AlertCircle, RefreshCw, Brain, Target } from 'lucide-react';
 
 const TradingDashboard: React.FC = () => {
   const [candles, setCandles] = useState<Candle[]>([]);
@@ -17,6 +18,10 @@ const TradingDashboard: React.FC = () => {
   const [selectedAsset, setSelectedAsset] = useState('EUR/USD');
   const [timeframe, setTimeframe] = useState('1H');
   const [isLoading, setIsLoading] = useState(false);
+  const [predictions, setPredictions] = useState<any[]>([]);
+  const [learningData, setLearningData] = useState<any[]>([]);
+  const [showPredictions, setShowPredictions] = useState(false);
+  const [showLearning, setShowLearning] = useState(false);
 
   useEffect(() => {
     loadCandleData();
@@ -46,9 +51,6 @@ const TradingDashboard: React.FC = () => {
     return { sentiment: 'Neutral', color: 'text-yellow-500', icon: AlertCircle };
   };
 
-  const marketSentiment = getMarketSentiment();
-  const SentimentIcon = marketSentiment.icon;
-
   const getLastPrice = () => {
     if (candles.length === 0) return 0;
     return candles[candles.length - 1].close;
@@ -63,6 +65,8 @@ const TradingDashboard: React.FC = () => {
     return { change, percentage };
   };
 
+  const marketSentiment = getMarketSentiment();
+  const SentimentIcon = marketSentiment.icon;
   const priceChange = getPriceChange();
 
   return (
@@ -73,10 +77,10 @@ const TradingDashboard: React.FC = () => {
           <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
             <div>
               <h1 className="text-3xl font-bold text-gray-900 mb-2">
-                📈 Detector de Patrones OlympTrade
+                🤖 Detector de Patrones IA - OlympTrade
               </h1>
               <p className="text-gray-600">
-                Análisis avanzado de velas japonesas para trading profesional
+                Análisis avanzado con predicción y autoaprendizaje
               </p>
             </div>
             
@@ -107,11 +111,32 @@ const TradingDashboard: React.FC = () => {
               </Select>
               
               <Button onClick={loadCandleData} disabled={isLoading}>
-                <Refresh className={`w-4 h-4 mr-2 ${isLoading ? 'animate-spin' : ''}`} />
+                <RefreshCw className={`w-4 h-4 mr-2 ${isLoading ? 'animate-spin' : ''}`} />
                 Actualizar
               </Button>
             </div>
           </div>
+        </div>
+
+        {/* AI Controls */}
+        <div className="flex gap-4">
+          <Button 
+            onClick={() => setShowPredictions(!showPredictions)}
+            variant={showPredictions ? "default" : "outline"}
+            className="flex items-center gap-2"
+          >
+            <Target className="w-4 h-4" />
+            Predicciones IA
+          </Button>
+          
+          <Button 
+            onClick={() => setShowLearning(!showLearning)}
+            variant={showLearning ? "default" : "outline"}
+            className="flex items-center gap-2"
+          >
+            <Brain className="w-4 h-4" />
+            Autoaprendizaje
+          </Button>
         </div>
 
         {/* Market Overview */}
@@ -183,6 +208,25 @@ const TradingDashboard: React.FC = () => {
           </Card>
         </div>
 
+        {/* AI Prediction Panel */}
+        {showPredictions && (
+          <PatternPredictor 
+            candles={candles} 
+            patterns={patterns}
+            selectedAsset={selectedAsset}
+            timeframe={timeframe}
+          />
+        )}
+
+        {/* Learning Engine Panel */}
+        {showLearning && (
+          <LearningEngine 
+            candles={candles} 
+            patterns={patterns}
+            selectedAsset={selectedAsset}
+          />
+        )}
+
         {/* Chart */}
         <Card>
           <CardHeader>
@@ -231,12 +275,12 @@ const TradingDashboard: React.FC = () => {
             </div>
             
             <div className="mt-4 p-4 bg-blue-50 rounded-lg">
-              <h4 className="font-semibold text-blue-800 mb-2">⚠️ Recomendaciones de Gestión de Riesgo</h4>
+              <h4 className="font-semibold text-blue-800 mb-2">🤖 Recomendaciones IA</h4>
               <ul className="text-sm space-y-1 text-blue-700">
-                <li>• Nunca inviertas más del 5% de tu capital en una sola operación</li>
-                <li>• Combina el análisis de patrones con niveles de soporte y resistencia</li>
-                <li>• Espera confirmación en el siguiente período antes de entrar</li>
-                <li>• Los patrones son más confiables en marcos temporales altos (1H, 4H, 1D)</li>
+                <li>• La IA analiza patrones históricos para mejorar las predicciones</li>
+                <li>• El autoaprendizaje se basa en el éxito de patrones anteriores</li>
+                <li>• Combina análisis técnico tradicional con machine learning</li>
+                <li>• Mayor precisión con más datos históricos del activo seleccionado</li>
               </ul>
             </div>
           </CardContent>
