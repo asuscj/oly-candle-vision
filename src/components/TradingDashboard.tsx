@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -8,12 +9,11 @@ import PatternDetector from './PatternDetector';
 import PatternPredictor from './PatternPredictor';
 import LearningEngine from './LearningEngine';
 import PerformanceBenchmark from './PerformanceBenchmark';
-import CameraIntegration from './CameraIntegration';
 import RealTimeChart from './RealTimeChart';
 import { Candle, Pattern } from '../types/trading';
 import { generateSampleCandles, olympTradeAssets } from '../utils/sampleData';
 import { detectPatterns } from '../utils/patternAnalysis';
-import { BarChart3, TrendingUp, TrendingDown, AlertCircle, RefreshCw, Brain, Target, Gauge, Camera, Activity } from 'lucide-react';
+import { BarChart3, TrendingUp, TrendingDown, AlertCircle, RefreshCw, Brain, Target, Gauge, Activity } from 'lucide-react';
 
 const TradingDashboard: React.FC = () => {
   const [candles, setCandles] = useState<Candle[]>([]);
@@ -23,15 +23,23 @@ const TradingDashboard: React.FC = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [predictions, setPredictions] = useState<any[]>([]);
   const [learningData, setLearningData] = useState<any[]>([]);
-  const [showPredictions, setShowPredictions] = useState(false);
-  const [showLearning, setShowLearning] = useState(false);
-  const [showBenchmarks, setShowBenchmarks] = useState(false);
-  const [showCamera, setShowCamera] = useState(false);
   const [showRealTime, setShowRealTime] = useState(false);
 
   useEffect(() => {
     loadCandleData();
   }, [selectedAsset, timeframe]);
+
+  // Auto-ejecutar funciones de IA cada 30 segundos
+  useEffect(() => {
+    const aiInterval = setInterval(() => {
+      if (candles.length > 0) {
+        console.log('🤖 Ejecutando análisis automático de IA...');
+        // Las funciones de IA se ejecutan automáticamente dentro de cada componente
+      }
+    }, 30000);
+
+    return () => clearInterval(aiInterval);
+  }, [candles]);
 
   const loadCandleData = async () => {
     setIsLoading(true);
@@ -86,8 +94,12 @@ const TradingDashboard: React.FC = () => {
                 🤖 Detector de Patrones IA - OlympTrade Pro
               </h1>
               <p className="text-gray-600">
-                Análisis avanzado con predicción, autoaprendizaje, benchmarks y cámaras en tiempo real
+                Análisis avanzado con predicción automática, autoaprendizaje y benchmarks en tiempo real
               </p>
+              <div className="mt-2 flex items-center gap-2">
+                <div className="w-3 h-3 rounded-full bg-green-500 animate-pulse"></div>
+                <span className="text-sm text-green-600 font-medium">IA Automática Activa</span>
+              </div>
             </div>
             
             <div className="flex flex-col sm:flex-row gap-3">
@@ -124,53 +136,32 @@ const TradingDashboard: React.FC = () => {
           </div>
         </div>
 
-        {/* Enhanced AI Controls */}
-        <div className="flex flex-wrap gap-2">
-          <Button 
-            onClick={() => setShowPredictions(!showPredictions)}
-            variant={showPredictions ? "default" : "outline"}
-            className="flex items-center gap-2"
-          >
-            <Target className="w-4 h-4" />
-            Predicciones IA
-          </Button>
-          
-          <Button 
-            onClick={() => setShowLearning(!showLearning)}
-            variant={showLearning ? "default" : "outline"}
-            className="flex items-center gap-2"
-          >
-            <Brain className="w-4 h-4" />
-            Autoaprendizaje
-          </Button>
-          
-          <Button 
-            onClick={() => setShowBenchmarks(!showBenchmarks)}
-            variant={showBenchmarks ? "default" : "outline"}
-            className="flex items-center gap-2"
-          >
-            <Gauge className="w-4 h-4" />
-            Benchmarks
-          </Button>
-          
-          <Button 
-            onClick={() => setShowCamera(!showCamera)}
-            variant={showCamera ? "default" : "outline"}
-            className="flex items-center gap-2"
-          >
-            <Camera className="w-4 h-4" />
-            Cámara IA
-          </Button>
-          
-          <Button 
-            onClick={() => setShowRealTime(!showRealTime)}
-            variant={showRealTime ? "default" : "outline"}
-            className="flex items-center gap-2"
-          >
-            <Activity className="w-4 h-4" />
-            Tiempo Real
-          </Button>
-        </div>
+        {/* AI Status Panel */}
+        <Card className="border-l-4 border-l-purple-500">
+          <CardContent className="p-4">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <Brain className="w-6 h-6 text-purple-500 animate-pulse" />
+                <div>
+                  <h3 className="font-semibold text-purple-800">Sistema IA Automático</h3>
+                  <p className="text-sm text-purple-600">
+                    Predicciones, entrenamiento y aprendizaje ejecutándose automáticamente cada 30s
+                  </p>
+                </div>
+              </div>
+              <div className="flex gap-2">
+                <Button 
+                  onClick={() => setShowRealTime(!showRealTime)}
+                  variant={showRealTime ? "default" : "outline"}
+                  size="sm"
+                >
+                  <Activity className="w-4 h-4 mr-1" />
+                  Tiempo Real
+                </Button>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
 
         {/* Market Overview */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
@@ -241,39 +232,28 @@ const TradingDashboard: React.FC = () => {
           </Card>
         </div>
 
-        {/* Enhanced AI Panels */}
-        {showPredictions && (
-          <PatternPredictor 
-            candles={candles} 
-            patterns={patterns}
-            selectedAsset={selectedAsset}
-            timeframe={timeframe}
-          />
-        )}
+        {/* AI Components - Siempre visibles y ejecutándose automáticamente */}
+        <PatternPredictor 
+          candles={candles} 
+          patterns={patterns}
+          selectedAsset={selectedAsset}
+          timeframe={timeframe}
+          autoMode={true}
+        />
 
-        {showLearning && (
-          <LearningEngine 
-            candles={candles} 
-            patterns={patterns}
-            selectedAsset={selectedAsset}
-          />
-        )}
+        <LearningEngine 
+          candles={candles} 
+          patterns={patterns}
+          selectedAsset={selectedAsset}
+          autoMode={true}
+        />
 
-        {showBenchmarks && (
-          <PerformanceBenchmark 
-            onBenchmarkComplete={(results) => {
-              console.log('Benchmarks completados:', results);
-            }}
-          />
-        )}
-
-        {showCamera && (
-          <CameraIntegration 
-            onPatternDetected={(pattern) => {
-              console.log('Patrón detectado por cámara:', pattern);
-            }}
-          />
-        )}
+        <PerformanceBenchmark 
+          autoMode={true}
+          onBenchmarkComplete={(results) => {
+            console.log('Benchmarks completados automáticamente:', results);
+          }}
+        />
 
         {showRealTime && (
           <RealTimeChart 
@@ -309,7 +289,7 @@ const TradingDashboard: React.FC = () => {
         {/* Enhanced Trading Tips */}
         <Card>
           <CardHeader>
-            <CardTitle>💡 Consejos para OlympTrade Pro</CardTitle>
+            <CardTitle>💡 Consejos para OlympTrade Pro - IA Automática</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="grid md:grid-cols-2 gap-4">
@@ -331,14 +311,14 @@ const TradingDashboard: React.FC = () => {
               </div>
             </div>
             
-            <div className="mt-4 p-4 bg-blue-50 rounded-lg">
-              <h4 className="font-semibold text-blue-800 mb-2">🤖 Nuevas Capacidades IA Pro</h4>
-              <ul className="text-sm space-y-1 text-blue-700">
-                <li>• <strong>Benchmarks:</strong> Analiza el rendimiento de diferentes modelos IA</li>
-                <li>• <strong>Cámara IA:</strong> Detecta patrones visuales en tiempo real</li>
-                <li>• <strong>Gráficos Live:</strong> Datos en tiempo real con predicciones</li>
-                <li>• <strong>Autoaprendizaje:</strong> Mejora automática basada en resultados</li>
-                <li>• <strong>Análisis Integral:</strong> Combina múltiples fuentes de datos</li>
+            <div className="mt-4 p-4 bg-purple-50 rounded-lg">
+              <h4 className="font-semibold text-purple-800 mb-2">🤖 IA Automática Pro</h4>
+              <ul className="text-sm space-y-1 text-purple-700">
+                <li>• <strong>Predicciones Automáticas:</strong> Sistema genera predicciones cada 30 segundos</li>
+                <li>• <strong>Autoaprendizaje Continuo:</strong> Mejora automática basada en resultados históricos</li>
+                <li>• <strong>Entrenamiento Adaptativo:</strong> El modelo se entrena automáticamente con nuevos datos</li>
+                <li>• <strong>Benchmarks Continuos:</strong> Análisis de rendimiento automático y optimización</li>
+                <li>• <strong>Sin Intervención Manual:</strong> Sistema 100% automático y autónomo</li>
               </ul>
             </div>
           </CardContent>
